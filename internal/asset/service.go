@@ -107,10 +107,11 @@ func (assets *AssetService) renderAgent(proxyServer string, servers string, CACe
 		return "", err
 	}
 
-	t := template.New("agent.go")
-
 	agentFile := filepath.Join(srcDir, "agent.go")
-	t.ParseFiles(agentFile)
+	t, err := template.ParseFiles(agentFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse agent template: %w", err)
+	}
 
 	var tpl bytes.Buffer
 	data := struct {

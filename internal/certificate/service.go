@@ -250,6 +250,80 @@ func (cs *CertificateService) GenerateCert(name string, CAcert *Certificate) (*C
 	return res, nil
 }
 
+// GenerateCertWithFields generates a certificate with custom Organization and CommonName
+// This enables certificate-based identity detection and agent tracking
+func (cs *CertificateService) GenerateCertWithFields(
+	name string,
+	organization string,
+	CAcert *Certificate,
+) (*Certificate, error) {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	cert := &x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			CommonName:   name,
+			Organization: []string{organization},
+		},
+		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().AddDate(10, 0, 0),
+		SubjectKeyId: []byte{1, 2, 3, 4, 6},
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+	}
+
+	certPrivKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	caBytes, _ := pem.Decode(CAcert.Certificate)
+	ca, err := x509.ParseCertificate(caBytes.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	caPrivKeyBytes, _ := pem.Decode(CAcert.Key)
+	caPrivKey, err := x509.ParseECPrivateKey(caPrivKeyBytes.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, cert, ca, &certPrivKey.PublicKey, caPrivKey)
+	if err != nil {
+		return nil, err
+	}
+
+	certPEM := new(bytes.Buffer)
+	pem.Encode(certPEM, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: certBytes,
+	})
+
+	certPrivKeyPEM := new(bytes.Buffer)
+	certPrivKeyx509, err := x509.MarshalECPrivateKey(certPrivKey)
+	if err != nil {
+		return nil, err
+	}
+	pem.Encode(certPrivKeyPEM, &pem.Block{
+		Type:  "ECDSA PRIVATE KEY",
+		Bytes: certPrivKeyx509,
+	})
+
+	res := &Certificate{
+		Name:        name,
+		Certificate: certPEM.Bytes(),
+		Key:         certPrivKeyPEM.Bytes(),
+		Thumbprint:  cs.Thumbprint(certBytes),
+	}
+
+	return res, nil
+}
+
 func (cs *CertificateService) Thumbprint(rawCert []byte) [sha1.Size]byte {
 	return sha1.Sum(rawCert)
 }

@@ -186,6 +186,10 @@ message GenerateAgentReq {
   bool Obfuscate = 4;
   string ProxyServer = 5;
   bool IgnoreEnvProxy = 6;
+  
+  // Custom certificate fields for identity-based routing
+  string CertOrganization = 7;  // e.g., "group01"
+  string CertCommonName = 8;    // e.g., "group01-workstation-a1b2c3d4"
 }
 
 message GenerateAgentResp {

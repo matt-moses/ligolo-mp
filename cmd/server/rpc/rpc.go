@@ -295,7 +295,21 @@ func (s *ligoloServer) GenerateAgent(ctx context.Context, in *pb.GenerateAgentRe
 		return nil, fmt.Errorf("CA certificate not found")
 	}
 
-	cert, err := s.certService.GenerateCert("", CACert)
+	var cert *certificate.Certificate
+	var err error
+
+	// Check if custom cert fields provided
+	if in.CertCommonName != "" && in.CertOrganization != "" {
+		cert, err = s.certService.GenerateCertWithFields(
+			in.CertCommonName,
+			in.CertOrganization,
+			CACert,
+		)
+	} else {
+		// Fallback to shared cert behavior (backward compatible)
+		cert, err = s.certService.GenerateCert("", CACert)
+	}
+
 	if err != nil {
 		return nil, err
 	}

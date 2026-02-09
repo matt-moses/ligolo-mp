@@ -132,6 +132,20 @@ func (aah *AgentApiHandler) startHandler() {
 		remoteConn := <-aah.connections
 		slog.Debug("agent connection received")
 
+		// Extract certificate information from TLS connection
+		var certOrg, certCN string
+		if tlsConn, ok := remoteConn.(*tls.Conn); ok {
+			state := tlsConn.ConnectionState()
+			if len(state.PeerCertificates) > 0 {
+				cert := state.PeerCertificates[0]
+				if len(cert.Subject.Organization) > 0 {
+					certOrg = cert.Subject.Organization[0]
+				}
+				certCN = cert.Subject.CommonName
+				slog.Debug("agent certificate info", slog.String("org", certOrg), slog.String("cn", certCN))
+			}
+		}
+
 		config := yamux.DefaultConfig()
 		config.LogOutput = io.Discard
 		yamuxConn, err := yamux.Client(remoteConn, config)
@@ -141,7 +155,7 @@ func (aah *AgentApiHandler) startHandler() {
 		}
 		slog.Debug("established multiplexed connection with agent")
 
-		newSession, err := aah.sessionService.NewSession(yamuxConn)
+		newSession, err := aah.sessionService.NewSessionWithCert(yamuxConn, certOrg, certCN)
 		if err != nil {
 			slog.Error("could not initialize new session", slog.Any("error", err))
 			yamuxConn.Close()

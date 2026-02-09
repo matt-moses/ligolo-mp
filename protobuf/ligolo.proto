@@ -68,6 +68,8 @@ message Session {
   repeated Redirector Redirectors = 8;
   google.protobuf.Timestamp FirstSeen = 9;
   google.protobuf.Timestamp LastSeen = 10;
+  string CertOrganization = 11;  // Certificate Organization field (e.g., "team04")
+  string CertCommonName = 12;    // Certificate Common Name field (e.g., "team04-agent-167fb1a5")
 }
 
 message Tun {

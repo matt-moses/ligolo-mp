@@ -20,17 +20,19 @@ import (
 )
 
 type Session struct {
-	ID          string
-	Alias       string
-	IsConnected bool
-	IsRelaying  bool
-	Redirectors *memstore.Syncmap[string, Redirector]
-	Tun         *tun.Tun
-	Hostname    string
-	Interfaces  *memstore.Syncslice[protocol.NetInterface]
-	Multiplex   *yamux.Session `json:"-"`
-	FirstSeen   time.Time
-	LastSeen    time.Time
+	ID               string
+	Alias            string
+	IsConnected      bool
+	IsRelaying       bool
+	Redirectors      *memstore.Syncmap[string, Redirector]
+	Tun              *tun.Tun
+	Hostname         string
+	Interfaces       *memstore.Syncslice[protocol.NetInterface]
+	Multiplex        *yamux.Session `json:"-"`
+	FirstSeen        time.Time
+	LastSeen         time.Time
+	CertOrganization string // Certificate Organization from TLS connection
+	CertCommonName   string // Certificate Common Name from TLS connection
 }
 
 type Redirector struct {
@@ -478,16 +480,18 @@ func (sess *Session) Proto() *pb.Session {
 	}
 
 	return &pb.Session{
-		ID:          sess.ID,
-		Alias:       sess.Alias,
-		IsConnected: sess.IsConnected,
-		IsRelaying:  sess.IsRelaying,
-		Redirectors: redirectors,
-		Tun:         sess.Tun.Proto(),
-		Hostname:    sess.Hostname,
-		Interfaces:  ifaces,
-		FirstSeen:   timestamppb.New(sess.GetFirstSeen()),
-		LastSeen:    timestamppb.New(sess.GetLastSeen()),
+		ID:               sess.ID,
+		Alias:            sess.Alias,
+		IsConnected:      sess.IsConnected,
+		IsRelaying:       sess.IsRelaying,
+		Redirectors:      redirectors,
+		Tun:              sess.Tun.Proto(),
+		Hostname:         sess.Hostname,
+		Interfaces:       ifaces,
+		FirstSeen:        timestamppb.New(sess.GetFirstSeen()),
+		LastSeen:         timestamppb.New(sess.GetLastSeen()),
+		CertOrganization: sess.CertOrganization,
+		CertCommonName:   sess.CertCommonName,
 	}
 }
 

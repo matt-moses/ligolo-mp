@@ -163,19 +163,21 @@ func (x *Event) GetData() string {
 }
 
 type Session struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            string                 `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
-	Alias         string                 `protobuf:"bytes,2,opt,name=Alias,proto3" json:"Alias,omitempty"`
-	Hostname      string                 `protobuf:"bytes,3,opt,name=Hostname,proto3" json:"Hostname,omitempty"`
-	Tun           *Tun                   `protobuf:"bytes,4,opt,name=Tun,proto3" json:"Tun,omitempty"`
-	IsConnected   bool                   `protobuf:"varint,5,opt,name=IsConnected,proto3" json:"IsConnected,omitempty"`
-	IsRelaying    bool                   `protobuf:"varint,6,opt,name=IsRelaying,proto3" json:"IsRelaying,omitempty"`
-	Interfaces    []*Interface           `protobuf:"bytes,7,rep,name=Interfaces,proto3" json:"Interfaces,omitempty"`
-	Redirectors   []*Redirector          `protobuf:"bytes,8,rep,name=Redirectors,proto3" json:"Redirectors,omitempty"`
-	FirstSeen     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=FirstSeen,proto3" json:"FirstSeen,omitempty"`
-	LastSeen      *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=LastSeen,proto3" json:"LastSeen,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ID               string                 `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Alias            string                 `protobuf:"bytes,2,opt,name=Alias,proto3" json:"Alias,omitempty"`
+	Hostname         string                 `protobuf:"bytes,3,opt,name=Hostname,proto3" json:"Hostname,omitempty"`
+	Tun              *Tun                   `protobuf:"bytes,4,opt,name=Tun,proto3" json:"Tun,omitempty"`
+	IsConnected      bool                   `protobuf:"varint,5,opt,name=IsConnected,proto3" json:"IsConnected,omitempty"`
+	IsRelaying       bool                   `protobuf:"varint,6,opt,name=IsRelaying,proto3" json:"IsRelaying,omitempty"`
+	Interfaces       []*Interface           `protobuf:"bytes,7,rep,name=Interfaces,proto3" json:"Interfaces,omitempty"`
+	Redirectors      []*Redirector          `protobuf:"bytes,8,rep,name=Redirectors,proto3" json:"Redirectors,omitempty"`
+	FirstSeen        *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=FirstSeen,proto3" json:"FirstSeen,omitempty"`
+	LastSeen         *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=LastSeen,proto3" json:"LastSeen,omitempty"`
+	CertOrganization string                 `protobuf:"bytes,11,opt,name=CertOrganization,proto3" json:"CertOrganization,omitempty"` // Certificate Organization field (e.g., "team04")
+	CertCommonName   string                 `protobuf:"bytes,12,opt,name=CertCommonName,proto3" json:"CertCommonName,omitempty"`     // Certificate Common Name field (e.g., "team04-agent-167fb1a5")
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
@@ -276,6 +278,20 @@ func (x *Session) GetLastSeen() *timestamppb.Timestamp {
 		return x.LastSeen
 	}
 	return nil
+}
+
+func (x *Session) GetCertOrganization() string {
+	if x != nil {
+		return x.CertOrganization
+	}
+	return ""
+}
+
+func (x *Session) GetCertCommonName() string {
+	if x != nil {
+		return x.CertCommonName
+	}
+	return ""
 }
 
 type Tun struct {
@@ -2319,7 +2335,7 @@ const file_protobuf_ligolo_proto_rawDesc = "" +
 	"\x06Reason\x18\x02 \x01(\tR\x06Reason\"/\n" +
 	"\x05Event\x12\x12\n" +
 	"\x04Type\x18\x01 \x01(\x05R\x04Type\x12\x12\n" +
-	"\x04Data\x18\x02 \x01(\tR\x04Data\"\x87\x03\n" +
+	"\x04Data\x18\x02 \x01(\tR\x04Data\"\xdb\x03\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x14\n" +
 	"\x05Alias\x18\x02 \x01(\tR\x05Alias\x12\x1a\n" +
@@ -2335,7 +2351,9 @@ const file_protobuf_ligolo_proto_rawDesc = "" +
 	"\vRedirectors\x18\b \x03(\v2\x12.ligolo.RedirectorR\vRedirectors\x128\n" +
 	"\tFirstSeen\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tFirstSeen\x126\n" +
 	"\bLastSeen\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\bLastSeen\"@\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\bLastSeen\x12*\n" +
+	"\x10CertOrganization\x18\v \x01(\tR\x10CertOrganization\x12&\n" +
+	"\x0eCertCommonName\x18\f \x01(\tR\x0eCertCommonName\"@\n" +
 	"\x03Tun\x12\x12\n" +
 	"\x04Name\x18\x01 \x01(\tR\x04Name\x12%\n" +
 	"\x06Routes\x18\x02 \x03(\v2\r.ligolo.RouteR\x06Routes\"1\n" +

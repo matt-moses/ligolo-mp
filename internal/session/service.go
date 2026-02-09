@@ -26,10 +26,18 @@ func NewSessionService(config *config.Config, repo *SessionRepository) *SessionS
 }
 
 func (ss *SessionService) NewSession(multiplex *yamux.Session) (*Session, error) {
+	return ss.NewSessionWithCert(multiplex, "", "")
+}
+
+func (ss *SessionService) NewSessionWithCert(multiplex *yamux.Session, certOrg, certCN string) (*Session, error) {
 	session, err := new()
 	if err != nil {
 		return nil, err
 	}
+
+	// Set certificate information if provided
+	session.CertOrganization = certOrg
+	session.CertCommonName = certCN
 
 	if err := session.Connect(multiplex); err != nil {
 		return nil, err

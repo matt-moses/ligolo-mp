@@ -28,6 +28,8 @@ const (
 	MessageRedirectorCloseResponse
 	MessageDisconnectRequest
 	MessageDisconnectResponse
+	MessageProbeNetworkRequest
+	MessageProbeNetworkResponse
 )
 
 const (
@@ -153,4 +155,27 @@ type HostPingRequestPacket struct {
 // HostPingResponsePacket is sent by the agent to indicate the requested host status
 type HostPingResponsePacket struct {
 	Alive bool
+}
+
+// ProbeResult represents the result of a network probe
+type ProbeResult struct {
+	Target      string
+	IsReachable bool
+	LatencyMs   int32
+	Method      string
+	Error       string
+}
+
+// ProbeNetworkRequestPacket is sent by the operator to request network probes
+type ProbeNetworkRequestPacket struct {
+	Targets   []string
+	Method    string
+	TCPPorts  []int32
+	UDPPort   int32
+	TimeoutMs int32
+}
+
+// ProbeNetworkResponsePacket is sent by the agent with probe results
+type ProbeNetworkResponsePacket struct {
+	Results []ProbeResult
 }

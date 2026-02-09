@@ -71,3 +71,12 @@ func (t *Trace) Proto() *pb.Traceroute {
 		Metric:     int32(t.Metric),
 	}
 }
+
+// ProbeResult represents the result of a network probe attempt
+type ProbeResult struct {
+	Target      string // IP address tested
+	IsReachable bool   // Whether target responded
+	LatencyMs   int32  // Round-trip time in milliseconds
+	Method      string // Method that succeeded (e.g., "icmp", "tcp:22")
+	Error       string // Error message if probe failed
+}

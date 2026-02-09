@@ -38,6 +38,9 @@ service Ligolo {
   rpc GenerateAgent (GenerateAgentReq) returns (GenerateAgentResp) {}
 
   rpc Traceroute (TracerouteReq) returns (TracerouteResp) {}
+
+  // Network probing through agent
+  rpc ProbeNetwork (ProbeNetworkReq) returns (ProbeNetworkResp) {}
 }
 
 // [Objects]
@@ -248,6 +251,28 @@ message DemoteOperatorReq {
 message GetMetadataResp{
   Operator Operator = 1;
   Config Config = 2;
+}
+
+// Network probe request/response
+message ProbeNetworkReq {
+  string SessionID = 1;           // Agent session ID to execute probe
+  repeated string Targets = 2;     // IPs to probe (batch)
+  string Method = 3;               // "icmp", "tcp", "udp", "auto"
+  repeated int32 TCPPorts = 4;     // [22, 80, 135, 139, 443, 445, 3389, 8080]
+  int32 UDPPort = 5;               // 53 (DNS)
+  int32 TimeoutMs = 6;             // Per-target timeout (default: 2000ms)
+}
+
+message ProbeNetworkResp {
+  repeated ProbeResult Results = 1;
+}
+
+message ProbeResult {
+  string Target = 1;               // IP address tested
+  bool IsReachable = 2;            // True if any probe succeeded
+  int32 LatencyMs = 3;             // Round-trip time (0 if unreachable)
+  string Method = 4;               // "icmp", "tcp:22", "tcp:443", "udp:53"
+  string Error = 5;                // Error message if probe failed
 }
 
 // [/Methods]

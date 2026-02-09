@@ -350,6 +350,58 @@ func (s *ligoloServer) Traceroute(ctx context.Context, in *pb.TracerouteReq) (*p
 	}, nil
 }
 
+func (s *ligoloServer) ProbeNetwork(ctx context.Context, in *pb.ProbeNetworkReq) (*pb.ProbeNetworkResp, error) {
+	slog.Debug("Received request to probe network", slog.Any("in", in))
+
+	// Validate request
+	if in.SessionID == "" {
+		return nil, errors.New("session_id required")
+	}
+	if len(in.Targets) == 0 {
+		return nil, errors.New("at least one target required")
+	}
+
+	// Get session
+	sess := s.sessService.GetSession(in.SessionID)
+	if sess == nil {
+		return nil, fmt.Errorf("session '%s' not found", in.SessionID)
+	}
+
+	// Set default timeout if not specified
+	timeoutMs := in.TimeoutMs
+	if timeoutMs == 0 {
+		timeoutMs = 2000
+	}
+
+	// Set default method
+	method := in.Method
+	if method == "" {
+		method = "auto"
+	}
+
+	// Execute probe through agent
+	results, err := s.sessService.ProbeNetwork(in.SessionID, in.Targets, method, in.TCPPorts, in.UDPPort, timeoutMs)
+	if err != nil {
+		slog.Error("Probe failed", slog.Any("session", in.SessionID), slog.Any("error", err))
+		return nil, fmt.Errorf("probe failed: %w", err)
+	}
+
+	// Convert to protobuf
+	pbResults := make([]*pb.ProbeResult, len(results))
+	for i, r := range results {
+		pbResults[i] = &pb.ProbeResult{
+			Target:      r.Target,
+			IsReachable: r.IsReachable,
+			LatencyMs:   r.LatencyMs,
+			Method:      r.Method,
+			Error:       r.Error,
+		}
+	}
+
+	slog.Info("Probe completed", slog.Any("session", in.SessionID), slog.Any("results", len(pbResults)))
+	return &pb.ProbeNetworkResp{Results: pbResults}, nil
+}
+
 func (s *ligoloServer) GetOperators(ctx context.Context, in *pb.Empty) (*pb.GetOperatorsResp, error) {
 	slog.Debug("Received request to list operators", slog.Any("in", in))
 	oper := ctx.Value("operator").(*operator.Operator)

@@ -19,6 +19,7 @@ import (
 
 	"github.com/hashicorp/yamux"
 	"github.com/ttpreport/ligolo-mp-agent/internal/neterror"
+	"github.com/ttpreport/ligolo-mp-agent/internal/probe"
 	"github.com/ttpreport/ligolo-mp-agent/internal/protocol"
 	connectproxy "github.com/ttpreport/ligolo-mp-agent/internal/proxy/connect"
 	"github.com/ttpreport/ligolo-mp-agent/internal/relay"
@@ -332,5 +333,24 @@ func handleConn(conn net.Conn) {
 			Payload: protocol.DisconnectResponsePacket{},
 		})
 		os.Exit(0)
+	case protocol.MessageProbeNetworkRequest:
+		probeRequest := e.(protocol.ProbeNetworkRequestPacket)
+		encoder := protocol.NewEncoder(conn)
+
+		// Execute probes on all targets
+		results := make([]protocol.ProbeResult, 0, len(probeRequest.Targets))
+		for _, target := range probeRequest.Targets {
+			result := probe.ProbeTarget(target, probeRequest.Method, probeRequest.TCPPorts, probeRequest.UDPPort, probeRequest.TimeoutMs)
+			results = append(results, result)
+		}
+
+		probeResponse := protocol.ProbeNetworkResponsePacket{
+			Results: results,
+		}
+
+		encoder.Encode(protocol.Envelope{
+			Type:    protocol.MessageProbeNetworkResponse,
+			Payload: probeResponse,
+		})
 	}
 }

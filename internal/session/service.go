@@ -290,6 +290,38 @@ func (ss *SessionService) Init() error {
 	return nil
 }
 
+func (ss *SessionService) ProbeNetwork(sessID string, targets []string, method string, tcpPorts []int32, udpPort int32, timeoutMs int32) ([]route.ProbeResult, error) {
+	slog.Debug("probing network through agent", slog.Any("session", sessID), slog.Any("targets", targets))
+
+	session := ss.repo.GetOne(sessID)
+	if session == nil {
+		return nil, fmt.Errorf("session '%s' not found", sessID)
+	}
+
+	if !session.IsConnected {
+		return nil, fmt.Errorf("session '%s' is not connected", sessID)
+	}
+
+	response, err := session.remoteProbeNetwork(targets, method, tcpPorts, udpPort, timeoutMs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert protocol.ProbeResult to route.ProbeResult
+	results := make([]route.ProbeResult, len(response.Results))
+	for i, r := range response.Results {
+		results[i] = route.ProbeResult{
+			Target:      r.Target,
+			IsReachable: r.IsReachable,
+			LatencyMs:   r.LatencyMs,
+			Method:      r.Method,
+			Error:       r.Error,
+		}
+	}
+
+	return results, nil
+}
+
 func (ss *SessionService) CleanUp() error {
 	sessions, err := ss.repo.GetAll()
 	if err != nil {

@@ -2103,6 +2103,211 @@ func (x *GetMetadataResp) GetConfig() *Config {
 	return nil
 }
 
+// Network probe request/response
+type ProbeNetworkReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionID     string                 `protobuf:"bytes,1,opt,name=SessionID,proto3" json:"SessionID,omitempty"`       // Agent session ID to execute probe
+	Targets       []string               `protobuf:"bytes,2,rep,name=Targets,proto3" json:"Targets,omitempty"`           // IPs to probe (batch)
+	Method        string                 `protobuf:"bytes,3,opt,name=Method,proto3" json:"Method,omitempty"`             // "icmp", "tcp", "udp", "auto"
+	TCPPorts      []int32                `protobuf:"varint,4,rep,packed,name=TCPPorts,proto3" json:"TCPPorts,omitempty"` // [22, 80, 135, 139, 443, 445, 3389, 8080]
+	UDPPort       int32                  `protobuf:"varint,5,opt,name=UDPPort,proto3" json:"UDPPort,omitempty"`          // 53 (DNS)
+	TimeoutMs     int32                  `protobuf:"varint,6,opt,name=TimeoutMs,proto3" json:"TimeoutMs,omitempty"`      // Per-target timeout (default: 2000ms)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProbeNetworkReq) Reset() {
+	*x = ProbeNetworkReq{}
+	mi := &file_protobuf_ligolo_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeNetworkReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeNetworkReq) ProtoMessage() {}
+
+func (x *ProbeNetworkReq) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_ligolo_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeNetworkReq.ProtoReflect.Descriptor instead.
+func (*ProbeNetworkReq) Descriptor() ([]byte, []int) {
+	return file_protobuf_ligolo_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ProbeNetworkReq) GetSessionID() string {
+	if x != nil {
+		return x.SessionID
+	}
+	return ""
+}
+
+func (x *ProbeNetworkReq) GetTargets() []string {
+	if x != nil {
+		return x.Targets
+	}
+	return nil
+}
+
+func (x *ProbeNetworkReq) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ProbeNetworkReq) GetTCPPorts() []int32 {
+	if x != nil {
+		return x.TCPPorts
+	}
+	return nil
+}
+
+func (x *ProbeNetworkReq) GetUDPPort() int32 {
+	if x != nil {
+		return x.UDPPort
+	}
+	return 0
+}
+
+func (x *ProbeNetworkReq) GetTimeoutMs() int32 {
+	if x != nil {
+		return x.TimeoutMs
+	}
+	return 0
+}
+
+type ProbeNetworkResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Results       []*ProbeResult         `protobuf:"bytes,1,rep,name=Results,proto3" json:"Results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProbeNetworkResp) Reset() {
+	*x = ProbeNetworkResp{}
+	mi := &file_protobuf_ligolo_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeNetworkResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeNetworkResp) ProtoMessage() {}
+
+func (x *ProbeNetworkResp) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_ligolo_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeNetworkResp.ProtoReflect.Descriptor instead.
+func (*ProbeNetworkResp) Descriptor() ([]byte, []int) {
+	return file_protobuf_ligolo_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *ProbeNetworkResp) GetResults() []*ProbeResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+type ProbeResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Target        string                 `protobuf:"bytes,1,opt,name=Target,proto3" json:"Target,omitempty"`            // IP address tested
+	IsReachable   bool                   `protobuf:"varint,2,opt,name=IsReachable,proto3" json:"IsReachable,omitempty"` // True if any probe succeeded
+	LatencyMs     int32                  `protobuf:"varint,3,opt,name=LatencyMs,proto3" json:"LatencyMs,omitempty"`     // Round-trip time (0 if unreachable)
+	Method        string                 `protobuf:"bytes,4,opt,name=Method,proto3" json:"Method,omitempty"`            // "icmp", "tcp:22", "tcp:443", "udp:53"
+	Error         string                 `protobuf:"bytes,5,opt,name=Error,proto3" json:"Error,omitempty"`              // Error message if probe failed
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProbeResult) Reset() {
+	*x = ProbeResult{}
+	mi := &file_protobuf_ligolo_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeResult) ProtoMessage() {}
+
+func (x *ProbeResult) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_ligolo_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeResult.ProtoReflect.Descriptor instead.
+func (*ProbeResult) Descriptor() ([]byte, []int) {
+	return file_protobuf_ligolo_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *ProbeResult) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetIsReachable() bool {
+	if x != nil {
+		return x.IsReachable
+	}
+	return false
+}
+
+func (x *ProbeResult) GetLatencyMs() int32 {
+	if x != nil {
+		return x.LatencyMs
+	}
+	return 0
+}
+
+func (x *ProbeResult) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_protobuf_ligolo_proto protoreflect.FileDescriptor
 
 const file_protobuf_ligolo_proto_rawDesc = "" +
@@ -2247,7 +2452,22 @@ const file_protobuf_ligolo_proto_rawDesc = "" +
 	"\x04Name\x18\x01 \x01(\tR\x04Name\"g\n" +
 	"\x0fGetMetadataResp\x12,\n" +
 	"\bOperator\x18\x01 \x01(\v2\x10.ligolo.OperatorR\bOperator\x12&\n" +
-	"\x06Config\x18\x02 \x01(\v2\x0e.ligolo.ConfigR\x06Config2\xb2\n" +
+	"\x06Config\x18\x02 \x01(\v2\x0e.ligolo.ConfigR\x06Config\"\xb5\x01\n" +
+	"\x0fProbeNetworkReq\x12\x1c\n" +
+	"\tSessionID\x18\x01 \x01(\tR\tSessionID\x12\x18\n" +
+	"\aTargets\x18\x02 \x03(\tR\aTargets\x12\x16\n" +
+	"\x06Method\x18\x03 \x01(\tR\x06Method\x12\x1a\n" +
+	"\bTCPPorts\x18\x04 \x03(\x05R\bTCPPorts\x12\x18\n" +
+	"\aUDPPort\x18\x05 \x01(\x05R\aUDPPort\x12\x1c\n" +
+	"\tTimeoutMs\x18\x06 \x01(\x05R\tTimeoutMs\"A\n" +
+	"\x10ProbeNetworkResp\x12-\n" +
+	"\aResults\x18\x01 \x03(\v2\x13.ligolo.ProbeResultR\aResults\"\x93\x01\n" +
+	"\vProbeResult\x12\x16\n" +
+	"\x06Target\x18\x01 \x01(\tR\x06Target\x12 \n" +
+	"\vIsReachable\x18\x02 \x01(\bR\vIsReachable\x12\x1c\n" +
+	"\tLatencyMs\x18\x03 \x01(\x05R\tLatencyMs\x12\x16\n" +
+	"\x06Method\x18\x04 \x01(\tR\x06Method\x12\x14\n" +
+	"\x05Error\x18\x05 \x01(\tR\x05Error2\xf7\n" +
 	"\n" +
 	"\x06Ligolo\x12(\n" +
 	"\x04Join\x12\r.ligolo.Empty\x1a\r.ligolo.Event\"\x000\x01\x127\n" +
@@ -2274,7 +2494,8 @@ const file_protobuf_ligolo_proto_rawDesc = "" +
 	"\x0eDemoteOperator\x12\x19.ligolo.DemoteOperatorReq\x1a\r.ligolo.Empty\"\x00\x12F\n" +
 	"\rGenerateAgent\x12\x18.ligolo.GenerateAgentReq\x1a\x19.ligolo.GenerateAgentResp\"\x00\x12=\n" +
 	"\n" +
-	"Traceroute\x12\x15.ligolo.TracerouteReq\x1a\x16.ligolo.TracerouteResp\"\x00B,Z*github.com/ttpreport/ligolo-mp/v2/protobufb\x06proto3"
+	"Traceroute\x12\x15.ligolo.TracerouteReq\x1a\x16.ligolo.TracerouteResp\"\x00\x12C\n" +
+	"\fProbeNetwork\x12\x17.ligolo.ProbeNetworkReq\x1a\x18.ligolo.ProbeNetworkResp\"\x00B,Z*github.com/ttpreport/ligolo-mp/v2/protobufb\x06proto3"
 
 var (
 	file_protobuf_ligolo_proto_rawDescOnce sync.Once
@@ -2288,7 +2509,7 @@ func file_protobuf_ligolo_proto_rawDescGZIP() []byte {
 	return file_protobuf_ligolo_proto_rawDescData
 }
 
-var file_protobuf_ligolo_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_protobuf_ligolo_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_protobuf_ligolo_proto_goTypes = []any{
 	(*Empty)(nil),                 // 0: ligolo.Empty
 	(*Error)(nil),                 // 1: ligolo.Error
@@ -2328,14 +2549,17 @@ var file_protobuf_ligolo_proto_goTypes = []any{
 	(*PromoteOperatorReq)(nil),    // 35: ligolo.PromoteOperatorReq
 	(*DemoteOperatorReq)(nil),     // 36: ligolo.DemoteOperatorReq
 	(*GetMetadataResp)(nil),       // 37: ligolo.GetMetadataResp
-	(*timestamppb.Timestamp)(nil), // 38: google.protobuf.Timestamp
+	(*ProbeNetworkReq)(nil),       // 38: ligolo.ProbeNetworkReq
+	(*ProbeNetworkResp)(nil),      // 39: ligolo.ProbeNetworkResp
+	(*ProbeResult)(nil),           // 40: ligolo.ProbeResult
+	(*timestamppb.Timestamp)(nil), // 41: google.protobuf.Timestamp
 }
 var file_protobuf_ligolo_proto_depIdxs = []int32{
 	4,  // 0: ligolo.Session.Tun:type_name -> ligolo.Tun
 	5,  // 1: ligolo.Session.Interfaces:type_name -> ligolo.Interface
 	7,  // 2: ligolo.Session.Redirectors:type_name -> ligolo.Redirector
-	38, // 3: ligolo.Session.FirstSeen:type_name -> google.protobuf.Timestamp
-	38, // 4: ligolo.Session.LastSeen:type_name -> google.protobuf.Timestamp
+	41, // 3: ligolo.Session.FirstSeen:type_name -> google.protobuf.Timestamp
+	41, // 4: ligolo.Session.LastSeen:type_name -> google.protobuf.Timestamp
 	6,  // 5: ligolo.Tun.Routes:type_name -> ligolo.Route
 	8,  // 6: ligolo.Operator.Cert:type_name -> ligolo.Cert
 	3,  // 7: ligolo.GetSessionsResp.Sessions:type_name -> ligolo.Session
@@ -2349,57 +2573,60 @@ var file_protobuf_ligolo_proto_depIdxs = []int32{
 	9,  // 15: ligolo.AddOperatorResp.Operator:type_name -> ligolo.Operator
 	9,  // 16: ligolo.GetMetadataResp.Operator:type_name -> ligolo.Operator
 	10, // 17: ligolo.GetMetadataResp.Config:type_name -> ligolo.Config
-	0,  // 18: ligolo.Ligolo.Join:input_type -> ligolo.Empty
-	0,  // 19: ligolo.Ligolo.GetMetadata:input_type -> ligolo.Empty
-	0,  // 20: ligolo.Ligolo.GetSessions:input_type -> ligolo.Empty
-	15, // 21: ligolo.Ligolo.RenameSession:input_type -> ligolo.RenameSessionReq
-	18, // 22: ligolo.Ligolo.KillSession:input_type -> ligolo.KillSessionReq
-	16, // 23: ligolo.Ligolo.StartRelay:input_type -> ligolo.StartRelayReq
-	17, // 24: ligolo.Ligolo.StopRelay:input_type -> ligolo.StopRelayReq
-	19, // 25: ligolo.Ligolo.AddRoute:input_type -> ligolo.AddRouteReq
-	20, // 26: ligolo.Ligolo.EditRoute:input_type -> ligolo.EditRouteReq
-	21, // 27: ligolo.Ligolo.MoveRoute:input_type -> ligolo.MoveRouteReq
-	22, // 28: ligolo.Ligolo.DelRoute:input_type -> ligolo.DelRouteReq
-	12, // 29: ligolo.Ligolo.AddRedirector:input_type -> ligolo.AddRedirectorReq
-	13, // 30: ligolo.Ligolo.DelRedirector:input_type -> ligolo.DelRedirectorReq
-	0,  // 31: ligolo.Ligolo.GetCerts:input_type -> ligolo.Empty
-	28, // 32: ligolo.Ligolo.RegenCert:input_type -> ligolo.RegenCertReq
-	0,  // 33: ligolo.Ligolo.GetOperators:input_type -> ligolo.Empty
-	30, // 34: ligolo.Ligolo.ExportOperator:input_type -> ligolo.ExportOperatorReq
-	32, // 35: ligolo.Ligolo.AddOperator:input_type -> ligolo.AddOperatorReq
-	34, // 36: ligolo.Ligolo.DelOperator:input_type -> ligolo.DelOperatorReq
-	35, // 37: ligolo.Ligolo.PromoteOperator:input_type -> ligolo.PromoteOperatorReq
-	36, // 38: ligolo.Ligolo.DemoteOperator:input_type -> ligolo.DemoteOperatorReq
-	23, // 39: ligolo.Ligolo.GenerateAgent:input_type -> ligolo.GenerateAgentReq
-	25, // 40: ligolo.Ligolo.Traceroute:input_type -> ligolo.TracerouteReq
-	2,  // 41: ligolo.Ligolo.Join:output_type -> ligolo.Event
-	37, // 42: ligolo.Ligolo.GetMetadata:output_type -> ligolo.GetMetadataResp
-	14, // 43: ligolo.Ligolo.GetSessions:output_type -> ligolo.GetSessionsResp
-	0,  // 44: ligolo.Ligolo.RenameSession:output_type -> ligolo.Empty
-	0,  // 45: ligolo.Ligolo.KillSession:output_type -> ligolo.Empty
-	0,  // 46: ligolo.Ligolo.StartRelay:output_type -> ligolo.Empty
-	0,  // 47: ligolo.Ligolo.StopRelay:output_type -> ligolo.Empty
-	0,  // 48: ligolo.Ligolo.AddRoute:output_type -> ligolo.Empty
-	0,  // 49: ligolo.Ligolo.EditRoute:output_type -> ligolo.Empty
-	0,  // 50: ligolo.Ligolo.MoveRoute:output_type -> ligolo.Empty
-	0,  // 51: ligolo.Ligolo.DelRoute:output_type -> ligolo.Empty
-	0,  // 52: ligolo.Ligolo.AddRedirector:output_type -> ligolo.Empty
-	0,  // 53: ligolo.Ligolo.DelRedirector:output_type -> ligolo.Empty
-	27, // 54: ligolo.Ligolo.GetCerts:output_type -> ligolo.GetCertsResp
-	0,  // 55: ligolo.Ligolo.RegenCert:output_type -> ligolo.Empty
-	29, // 56: ligolo.Ligolo.GetOperators:output_type -> ligolo.GetOperatorsResp
-	31, // 57: ligolo.Ligolo.ExportOperator:output_type -> ligolo.ExportOperatorResp
-	33, // 58: ligolo.Ligolo.AddOperator:output_type -> ligolo.AddOperatorResp
-	0,  // 59: ligolo.Ligolo.DelOperator:output_type -> ligolo.Empty
-	0,  // 60: ligolo.Ligolo.PromoteOperator:output_type -> ligolo.Empty
-	0,  // 61: ligolo.Ligolo.DemoteOperator:output_type -> ligolo.Empty
-	24, // 62: ligolo.Ligolo.GenerateAgent:output_type -> ligolo.GenerateAgentResp
-	26, // 63: ligolo.Ligolo.Traceroute:output_type -> ligolo.TracerouteResp
-	41, // [41:64] is the sub-list for method output_type
-	18, // [18:41] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	40, // 18: ligolo.ProbeNetworkResp.Results:type_name -> ligolo.ProbeResult
+	0,  // 19: ligolo.Ligolo.Join:input_type -> ligolo.Empty
+	0,  // 20: ligolo.Ligolo.GetMetadata:input_type -> ligolo.Empty
+	0,  // 21: ligolo.Ligolo.GetSessions:input_type -> ligolo.Empty
+	15, // 22: ligolo.Ligolo.RenameSession:input_type -> ligolo.RenameSessionReq
+	18, // 23: ligolo.Ligolo.KillSession:input_type -> ligolo.KillSessionReq
+	16, // 24: ligolo.Ligolo.StartRelay:input_type -> ligolo.StartRelayReq
+	17, // 25: ligolo.Ligolo.StopRelay:input_type -> ligolo.StopRelayReq
+	19, // 26: ligolo.Ligolo.AddRoute:input_type -> ligolo.AddRouteReq
+	20, // 27: ligolo.Ligolo.EditRoute:input_type -> ligolo.EditRouteReq
+	21, // 28: ligolo.Ligolo.MoveRoute:input_type -> ligolo.MoveRouteReq
+	22, // 29: ligolo.Ligolo.DelRoute:input_type -> ligolo.DelRouteReq
+	12, // 30: ligolo.Ligolo.AddRedirector:input_type -> ligolo.AddRedirectorReq
+	13, // 31: ligolo.Ligolo.DelRedirector:input_type -> ligolo.DelRedirectorReq
+	0,  // 32: ligolo.Ligolo.GetCerts:input_type -> ligolo.Empty
+	28, // 33: ligolo.Ligolo.RegenCert:input_type -> ligolo.RegenCertReq
+	0,  // 34: ligolo.Ligolo.GetOperators:input_type -> ligolo.Empty
+	30, // 35: ligolo.Ligolo.ExportOperator:input_type -> ligolo.ExportOperatorReq
+	32, // 36: ligolo.Ligolo.AddOperator:input_type -> ligolo.AddOperatorReq
+	34, // 37: ligolo.Ligolo.DelOperator:input_type -> ligolo.DelOperatorReq
+	35, // 38: ligolo.Ligolo.PromoteOperator:input_type -> ligolo.PromoteOperatorReq
+	36, // 39: ligolo.Ligolo.DemoteOperator:input_type -> ligolo.DemoteOperatorReq
+	23, // 40: ligolo.Ligolo.GenerateAgent:input_type -> ligolo.GenerateAgentReq
+	25, // 41: ligolo.Ligolo.Traceroute:input_type -> ligolo.TracerouteReq
+	38, // 42: ligolo.Ligolo.ProbeNetwork:input_type -> ligolo.ProbeNetworkReq
+	2,  // 43: ligolo.Ligolo.Join:output_type -> ligolo.Event
+	37, // 44: ligolo.Ligolo.GetMetadata:output_type -> ligolo.GetMetadataResp
+	14, // 45: ligolo.Ligolo.GetSessions:output_type -> ligolo.GetSessionsResp
+	0,  // 46: ligolo.Ligolo.RenameSession:output_type -> ligolo.Empty
+	0,  // 47: ligolo.Ligolo.KillSession:output_type -> ligolo.Empty
+	0,  // 48: ligolo.Ligolo.StartRelay:output_type -> ligolo.Empty
+	0,  // 49: ligolo.Ligolo.StopRelay:output_type -> ligolo.Empty
+	0,  // 50: ligolo.Ligolo.AddRoute:output_type -> ligolo.Empty
+	0,  // 51: ligolo.Ligolo.EditRoute:output_type -> ligolo.Empty
+	0,  // 52: ligolo.Ligolo.MoveRoute:output_type -> ligolo.Empty
+	0,  // 53: ligolo.Ligolo.DelRoute:output_type -> ligolo.Empty
+	0,  // 54: ligolo.Ligolo.AddRedirector:output_type -> ligolo.Empty
+	0,  // 55: ligolo.Ligolo.DelRedirector:output_type -> ligolo.Empty
+	27, // 56: ligolo.Ligolo.GetCerts:output_type -> ligolo.GetCertsResp
+	0,  // 57: ligolo.Ligolo.RegenCert:output_type -> ligolo.Empty
+	29, // 58: ligolo.Ligolo.GetOperators:output_type -> ligolo.GetOperatorsResp
+	31, // 59: ligolo.Ligolo.ExportOperator:output_type -> ligolo.ExportOperatorResp
+	33, // 60: ligolo.Ligolo.AddOperator:output_type -> ligolo.AddOperatorResp
+	0,  // 61: ligolo.Ligolo.DelOperator:output_type -> ligolo.Empty
+	0,  // 62: ligolo.Ligolo.PromoteOperator:output_type -> ligolo.Empty
+	0,  // 63: ligolo.Ligolo.DemoteOperator:output_type -> ligolo.Empty
+	24, // 64: ligolo.Ligolo.GenerateAgent:output_type -> ligolo.GenerateAgentResp
+	26, // 65: ligolo.Ligolo.Traceroute:output_type -> ligolo.TracerouteResp
+	39, // 66: ligolo.Ligolo.ProbeNetwork:output_type -> ligolo.ProbeNetworkResp
+	43, // [43:67] is the sub-list for method output_type
+	19, // [19:43] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_protobuf_ligolo_proto_init() }
@@ -2413,7 +2640,7 @@ func file_protobuf_ligolo_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protobuf_ligolo_proto_rawDesc), len(file_protobuf_ligolo_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

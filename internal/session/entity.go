@@ -404,6 +404,42 @@ func (sess *Session) remoteRemoveRedirector(id string) error {
 	return nil
 }
 
+func (sess *Session) remoteProbeNetwork(targets []string, method string, tcpPorts []int32, udpPort int32, timeoutMs int32) (protocol.ProbeNetworkResponsePacket, error) {
+	if !sess.IsMultiplexOpen() {
+		return protocol.ProbeNetworkResponsePacket{}, fmt.Errorf("multiplex is disconnected")
+	}
+
+	stream, err := sess.Multiplex.Open()
+	if err != nil {
+		return protocol.ProbeNetworkResponsePacket{}, err
+	}
+	defer stream.Close()
+
+	protocolEncoder := protocol.NewEncoder(stream)
+	protocolDecoder := protocol.NewDecoder(stream)
+
+	probeRequest := protocol.ProbeNetworkRequestPacket{
+		Targets:   targets,
+		Method:    method,
+		TCPPorts:  tcpPorts,
+		UDPPort:   udpPort,
+		TimeoutMs: timeoutMs,
+	}
+	if err := protocolEncoder.Encode(protocol.Envelope{
+		Type:    protocol.MessageProbeNetworkRequest,
+		Payload: probeRequest,
+	}); err != nil {
+		return protocol.ProbeNetworkResponsePacket{}, err
+	}
+
+	if err := protocolDecoder.Decode(); err != nil {
+		return protocol.ProbeNetworkResponsePacket{}, err
+	}
+
+	response := protocolDecoder.Envelope.Payload.(protocol.ProbeNetworkResponsePacket)
+	return response, nil
+}
+
 func (sess *Session) Hash() string {
 	hasher := sha1.New()
 

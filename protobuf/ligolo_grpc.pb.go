@@ -42,6 +42,7 @@ const (
 	Ligolo_DemoteOperator_FullMethodName  = "/ligolo.Ligolo/DemoteOperator"
 	Ligolo_GenerateAgent_FullMethodName   = "/ligolo.Ligolo/GenerateAgent"
 	Ligolo_Traceroute_FullMethodName      = "/ligolo.Ligolo/Traceroute"
+	Ligolo_ProbeNetwork_FullMethodName    = "/ligolo.Ligolo/ProbeNetwork"
 )
 
 // LigoloClient is the client API for Ligolo service.
@@ -71,6 +72,8 @@ type LigoloClient interface {
 	DemoteOperator(ctx context.Context, in *DemoteOperatorReq, opts ...grpc.CallOption) (*Empty, error)
 	GenerateAgent(ctx context.Context, in *GenerateAgentReq, opts ...grpc.CallOption) (*GenerateAgentResp, error)
 	Traceroute(ctx context.Context, in *TracerouteReq, opts ...grpc.CallOption) (*TracerouteResp, error)
+	// Network probing through agent
+	ProbeNetwork(ctx context.Context, in *ProbeNetworkReq, opts ...grpc.CallOption) (*ProbeNetworkResp, error)
 }
 
 type ligoloClient struct {
@@ -320,6 +323,16 @@ func (c *ligoloClient) Traceroute(ctx context.Context, in *TracerouteReq, opts .
 	return out, nil
 }
 
+func (c *ligoloClient) ProbeNetwork(ctx context.Context, in *ProbeNetworkReq, opts ...grpc.CallOption) (*ProbeNetworkResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProbeNetworkResp)
+	err := c.cc.Invoke(ctx, Ligolo_ProbeNetwork_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LigoloServer is the server API for Ligolo service.
 // All implementations must embed UnimplementedLigoloServer
 // for forward compatibility.
@@ -347,6 +360,8 @@ type LigoloServer interface {
 	DemoteOperator(context.Context, *DemoteOperatorReq) (*Empty, error)
 	GenerateAgent(context.Context, *GenerateAgentReq) (*GenerateAgentResp, error)
 	Traceroute(context.Context, *TracerouteReq) (*TracerouteResp, error)
+	// Network probing through agent
+	ProbeNetwork(context.Context, *ProbeNetworkReq) (*ProbeNetworkResp, error)
 	mustEmbedUnimplementedLigoloServer()
 }
 
@@ -425,6 +440,9 @@ func (UnimplementedLigoloServer) GenerateAgent(context.Context, *GenerateAgentRe
 }
 func (UnimplementedLigoloServer) Traceroute(context.Context, *TracerouteReq) (*TracerouteResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method Traceroute not implemented")
+}
+func (UnimplementedLigoloServer) ProbeNetwork(context.Context, *ProbeNetworkReq) (*ProbeNetworkResp, error) {
+	return nil, status.Error(codes.Unimplemented, "method ProbeNetwork not implemented")
 }
 func (UnimplementedLigoloServer) mustEmbedUnimplementedLigoloServer() {}
 func (UnimplementedLigoloServer) testEmbeddedByValue()                {}
@@ -854,6 +872,24 @@ func _Ligolo_Traceroute_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Ligolo_ProbeNetwork_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProbeNetworkReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LigoloServer).ProbeNetwork(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ligolo_ProbeNetwork_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LigoloServer).ProbeNetwork(ctx, req.(*ProbeNetworkReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Ligolo_ServiceDesc is the grpc.ServiceDesc for Ligolo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -948,6 +984,10 @@ var Ligolo_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Traceroute",
 			Handler:    _Ligolo_Traceroute_Handler,
+		},
+		{
+			MethodName: "ProbeNetwork",
+			Handler:    _Ligolo_ProbeNetwork_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

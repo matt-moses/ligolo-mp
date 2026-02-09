@@ -28,6 +28,8 @@ const (
 	MessageRedirectorCloseResponse
 	MessageDisconnectRequest
 	MessageDisconnectResponse
+	MessageProbeNetworkRequest
+	MessageProbeNetworkResponse
 )
 
 const (
@@ -153,4 +155,27 @@ type HostPingRequestPacket struct {
 // HostPingResponsePacket is sent by the agent to indicate the requested host status
 type HostPingResponsePacket struct {
 	Alive bool
+}
+
+// ProbeNetworkRequestPacket is sent to an agent to probe multiple target IPs
+type ProbeNetworkRequestPacket struct {
+	Targets   []string // IPs to probe
+	Method    string   // "icmp", "tcp", "udp", "auto"
+	TCPPorts  []int32  // TCP ports to test
+	UDPPort   int32    // UDP port to test (usually 53)
+	TimeoutMs int32    // Per-target timeout in milliseconds
+}
+
+// ProbeNetworkResponsePacket contains the probe results from the agent
+type ProbeNetworkResponsePacket struct {
+	Results []ProbeResult
+}
+
+// ProbeResult represents a single probe attempt result
+type ProbeResult struct {
+	Target      string // IP address tested
+	IsReachable bool   // Whether target responded
+	LatencyMs   int32  // Round-trip time in milliseconds
+	Method      string // Method that succeeded (e.g., "icmp", "tcp:22")
+	Error       string // Error message if probe failed
 }

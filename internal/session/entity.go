@@ -2,6 +2,7 @@ package session
 
 import (
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -443,8 +444,23 @@ func (sess *Session) remoteProbeNetwork(targets []string, method string, tcpPort
 }
 
 func (sess *Session) Hash() string {
-	hasher := sha1.New()
+	// Certificate-based identity takes precedence
+	if sess.CertOrganization != "" && sess.CertCommonName != "" {
+		hasher := sha256.New()
+		hasher.Write([]byte(sess.CertOrganization))
+		hasher.Write([]byte(":"))
+		hasher.Write([]byte(sess.CertCommonName))
+		hash := hex.EncodeToString(hasher.Sum(nil))
+		slog.Debug("using certificate-based session ID",
+			slog.String("org", sess.CertOrganization),
+			slog.String("cn", sess.CertCommonName),
+			slog.String("id", hash))
+		return hash
+	}
 
+	// Fallback to MAC-based identity for backwards compatibility
+	slog.Debug("using MAC-based session ID (no certificate)")
+	hasher := sha1.New()
 	ifaces := sess.Interfaces.All()
 	sort.SliceStable(ifaces, func(i, j int) bool {
 		return ifaces[i].HardwareAddr.String() > ifaces[j].HardwareAddr.String()
@@ -452,8 +468,9 @@ func (sess *Session) Hash() string {
 	for _, ifaceInfo := range ifaces {
 		hasher.Write([]byte(ifaceInfo.HardwareAddr))
 	}
-
-	return hex.EncodeToString(hasher.Sum(nil))
+	hash := hex.EncodeToString(hasher.Sum(nil))
+	slog.Debug("MAC-based session ID", slog.String("id", hash))
+	return hash
 }
 
 func (sess *Session) String() string {

@@ -148,6 +148,9 @@ func (aah *AgentApiHandler) startHandler() {
 
 		config := yamux.DefaultConfig()
 		config.LogOutput = io.Discard
+		// Match agent-side yamux settings to prevent keepalive mismatches
+		config.KeepAliveInterval = 60 * time.Second
+		config.ConnectionWriteTimeout = 30 * time.Second
 		yamuxConn, err := yamux.Client(remoteConn, config)
 		if err != nil {
 			slog.Error("could not open multiplexed connection with agent")

@@ -110,7 +110,8 @@ func main() {
 			}
 
 			dialer := &net.Dialer{
-				Timeout: timeout,
+				Timeout:   timeout,
+				KeepAlive: 15 * time.Second, // Enable TCP keepalive
 			}
 
 			if proxyServer != "" {
@@ -129,7 +130,7 @@ func main() {
 				}
 			} else {
 				if ignoreEnvProxy {
-					conn, err = net.DialTimeout("tcp", server, timeout)
+					conn, err = dialer.Dial("tcp", server)
 					if err != nil {
 						continue
 					}
@@ -150,10 +151,20 @@ func main() {
 }
 
 func connect(conn net.Conn, config *tls.Config) error {
+	// Enable TCP keepalive on the underlying connection
+	if tcpConn, ok := conn.(*net.TCPConn); ok {
+		tcpConn.SetKeepAlive(true)
+		tcpConn.SetKeepAlivePeriod(15 * time.Second)
+	}
+
 	tlsConn := tls.Client(conn, config)
 
 	yamuxConf := yamux.DefaultConfig()
 	yamuxConf.LogOutput = io.Discard
+	// Increase keepalive interval to reduce connection overhead
+	yamuxConf.KeepAliveInterval = 60 * time.Second
+	// Increase write timeout to prevent premature disconnections
+	yamuxConf.ConnectionWriteTimeout = 30 * time.Second
 	yamuxConn, err := yamux.Server(tlsConn, yamuxConf)
 	if err != nil {
 		return err

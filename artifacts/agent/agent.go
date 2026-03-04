@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/url"
 	"os"
@@ -29,6 +30,9 @@ import (
 
 var (
 	redirectorMap map[string]relay.Redirector
+	// Team identification embedded at compile time
+	teamID  = `{{ .TeamID }}`
+	agentID = `{{ .AgentID }}`
 )
 
 func main() {
@@ -76,15 +80,17 @@ func main() {
 				continue
 			}
 
-			mtlsCert, err := tls.X509KeyPair(AgentCert, AgentKey)
-			if err != nil {
-				continue
+			// Certificates are optional (team info passed via protocol instead)
+			if len(AgentCert) > 0 && len(AgentKey) > 0 {
+				_, certErr := tls.X509KeyPair(AgentCert, AgentKey)
+				if certErr != nil {
+					log.Printf("Failed to load agent certificate: %v (continuing without cert)", certErr)
+				}
 			}
 
 			tlsConfig = tls.Config{
 				RootCAs:            ca,
 				ServerName:         host,
-				Certificates:       []tls.Certificate{mtlsCert},
 				InsecureSkipVerify: true,
 				VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
 					cert, err := x509.ParseCertificate(rawCerts[0])
@@ -159,12 +165,18 @@ func connect(conn net.Conn, config *tls.Config) error {
 
 	tlsConn := tls.Client(conn, config)
 
+	// Explicitly perform TLS handshake
+	if err := tlsConn.Handshake(); err != nil {
+		return err
+	}
+
 	yamuxConf := yamux.DefaultConfig()
 	yamuxConf.LogOutput = io.Discard
 	// Increase keepalive interval to reduce connection overhead
 	yamuxConf.KeepAliveInterval = 60 * time.Second
 	// Increase write timeout to prevent premature disconnections
 	yamuxConf.ConnectionWriteTimeout = 30 * time.Second
+
 	yamuxConn, err := yamux.Server(tlsConn, yamuxConf)
 	if err != nil {
 		return err
@@ -273,6 +285,8 @@ func handleConn(conn net.Conn) {
 			Hostname:    hostname,
 			Interfaces:  protocol.NewNetInterfaces(nonloopbackIfaces),
 			Redirectors: protocol.NewRedirectorInterface(redirectorMap),
+			TeamID:      teamID,  // Send team identifier to server
+			AgentID:     agentID, // Send agent identifier to server
 		}
 
 		encoder.Encode(protocol.Envelope{

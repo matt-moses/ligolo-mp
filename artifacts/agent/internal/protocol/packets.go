@@ -50,6 +50,8 @@ type InfoReplyPacket struct {
 	Hostname    string
 	Interfaces  []NetInterface
 	Redirectors []RedirectorInterface
+	TeamID      string // Team identifier (e.g., "team00")
+	AgentID     string // Agent identifier (e.g., "team00-quickdl-abc123")
 }
 
 type RedirectorRequestPacket struct {

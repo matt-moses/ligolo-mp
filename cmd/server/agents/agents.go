@@ -48,7 +48,10 @@ func Run(config *config.Config, certService *certificate.CertificateService, ses
 
 	var clientAuth = tls.RequireAndVerifyClientCert
 	if config.InsecureAgents {
+		slog.Warn("InsecureAgents is TRUE - not requiring client certificates!")
 		clientAuth = tls.NoClientCert
+	} else {
+		slog.Info("InsecureAgents is FALSE - requiring client certificates")
 	}
 
 	tlsConfig := &tls.Config{
@@ -58,8 +61,22 @@ func Run(config *config.Config, certService *certificate.CertificateService, ses
 		RootCAs:            certpool,
 		MinVersion:         tls.VersionTLS13,
 		MaxVersion:         tls.VersionTLS13,
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: true, // For server side, this doesn't affect client cert requirement
 		VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+			// When using a custom VerifyPeerCertificate callback, we must manually enforce
+			// client certificate requirement since the callback replaces normal verification
+			if !config.InsecureAgents {
+				if len(rawCerts) == 0 {
+					slog.Warn("Client connected without certificate (rejected)")
+					return errors.New("client certificate required but not provided")
+				}
+			}
+
+			// If InsecureAgents is true or if certs were provided, continue with verification
+			if len(rawCerts) == 0 {
+				return nil // No cert provided but InsecureAgents allows it
+			}
+
 			cert, err := x509.ParseCertificate(rawCerts[0])
 			if err != nil {
 				return err
@@ -123,6 +140,10 @@ func (aah *AgentApiHandler) serve(protocol string, listenIface string, tlsConfig
 
 			continue
 		}
+
+		// TLS connections accepted - team info will come via protocol, not certificates
+		slog.Debug("Accepted connection")
+
 		aah.connections <- conn
 	}
 }
@@ -135,15 +156,24 @@ func (aah *AgentApiHandler) startHandler() {
 		// Extract certificate information from TLS connection
 		var certOrg, certCN string
 		if tlsConn, ok := remoteConn.(*tls.Conn); ok {
+			slog.Debug("connection is TLS")
 			state := tlsConn.ConnectionState()
+			slog.Debug("TLS connection state", slog.Int("peer_certs", len(state.PeerCertificates)))
 			if len(state.PeerCertificates) > 0 {
 				cert := state.PeerCertificates[0]
+				slog.Debug("peer certificate found",
+					slog.Int("org_count", len(cert.Subject.Organization)),
+					slog.String("cn", cert.Subject.CommonName))
 				if len(cert.Subject.Organization) > 0 {
 					certOrg = cert.Subject.Organization[0]
 				}
 				certCN = cert.Subject.CommonName
-				slog.Debug("agent certificate info", slog.String("org", certOrg), slog.String("cn", certCN))
+				slog.Info("Agent certificate extracted", slog.String("org", certOrg), slog.String("cn", certCN))
+			} else {
+				slog.Warn("No peer certificates in TLS connection")
 			}
+		} else {
+			slog.Warn("Connection is not TLS!")
 		}
 
 		config := yamux.DefaultConfig()

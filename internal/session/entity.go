@@ -165,6 +165,17 @@ func (sess *Session) Connect(multiplex *yamux.Session) error {
 	}
 	slog.Debug("received network info from remote")
 
+	// Extract team information from protocol message if provided
+	// This takes precedence over TLS certificate-based team detection
+	if info.TeamID != "" {
+		sess.CertOrganization = info.TeamID
+		slog.Info("Team info received from agent protocol", slog.String("team", info.TeamID))
+	}
+	if info.AgentID != "" {
+		sess.CertCommonName = info.AgentID
+		slog.Info("Agent ID received from agent protocol", slog.String("agent_id", info.AgentID))
+	}
+
 	for _, iface := range info.Interfaces {
 		sess.Interfaces.Append(iface)
 	}

@@ -89,7 +89,7 @@ func (assets *AssetService) UnpackDistGo() error {
 	return nil
 }
 
-func (assets *AssetService) renderAgent(proxyServer string, servers string, CACert string, AgentCert string, AgentKey string, IgnoreEnvProxy bool) (string, error) {
+func (assets *AssetService) renderAgent(proxyServer string, servers string, CACert string, AgentCert string, AgentKey string, IgnoreEnvProxy bool, TeamID string, AgentID string) (string, error) {
 	agentDir, err := assets.setupAgentDir()
 	if err != nil {
 		return "", err
@@ -121,6 +121,8 @@ func (assets *AssetService) renderAgent(proxyServer string, servers string, CACe
 		AgentCert      string
 		AgentKey       string
 		IgnoreEnvProxy bool
+		TeamID         string
+		AgentID        string
 	}{
 		ProxyServer:    proxyServer,
 		Servers:        servers,
@@ -128,7 +130,15 @@ func (assets *AssetService) renderAgent(proxyServer string, servers string, CACe
 		AgentCert:      AgentCert,
 		AgentKey:       AgentKey,
 		IgnoreEnvProxy: IgnoreEnvProxy,
+		TeamID:         TeamID,
+		AgentID:        AgentID,
 	}
+
+	slog.Info("Rendering agent template",
+		slog.Int("cacert_len", len(CACert)),
+		slog.Int("agentcert_len", len(AgentCert)),
+		slog.Int("agentkey_len", len(AgentKey)))
+
 	if err := t.Execute(&tpl, data); err != nil {
 		return "", err
 	}
@@ -167,7 +177,7 @@ func (assets *AssetService) setupAgentDir() (string, error) {
 	return "", nil
 }
 
-func (assets *AssetService) CompileAgent(goos string, goarch string, obfuscate bool, proxyServer string, servers string, CACert string, AgentCert string, AgentKey string, IgnoreEnvProxy bool) ([]byte, error) {
+func (assets *AssetService) CompileAgent(goos string, goarch string, obfuscate bool, proxyServer string, servers string, CACert string, AgentCert string, AgentKey string, IgnoreEnvProxy bool, TeamID string, AgentID string) ([]byte, error) {
 	for _, server := range strings.Split(servers, "\n") {
 		if _, _, err := net.SplitHostPort(server); err != nil {
 			return nil, fmt.Errorf("%s is invalid server: %s", server, err)
@@ -185,7 +195,7 @@ func (assets *AssetService) CompileAgent(goos string, goarch string, obfuscate b
 		}
 	}
 
-	agentDir, err := assets.renderAgent(proxyServer, servers, CACert, AgentCert, AgentKey, IgnoreEnvProxy)
+	agentDir, err := assets.renderAgent(proxyServer, servers, CACert, AgentCert, AgentKey, IgnoreEnvProxy, TeamID, AgentID)
 	if err != nil {
 		return nil, err
 	}
@@ -218,6 +228,16 @@ func (assets *AssetService) CompileAgent(goos string, goarch string, obfuscate b
 	if err != nil {
 		return nil, err
 	}
+
+	// DEBUG: Keep one agent source for inspection
+	debugDir := "/opt/ligolo-mp/debug-agent-source"
+	os.RemoveAll(debugDir)
+	os.MkdirAll(debugDir, 0755)
+	srcFile := filepath.Join(agentDir, "src", "agent.go")
+	debugFile := filepath.Join(debugDir, "agent.go")
+	srcData, _ := os.ReadFile(srcFile)
+	os.WriteFile(debugFile, srcData, 0644)
+	slog.Info("DEBUG: Agent source saved", slog.String("path", debugFile))
 
 	if err = os.RemoveAll(agentDir); err != nil {
 		return nil, err

@@ -290,29 +290,23 @@ func (s *ligoloServer) DelRedirector(ctx context.Context, in *pb.DelRedirectorRe
 }
 
 func (s *ligoloServer) GenerateAgent(ctx context.Context, in *pb.GenerateAgentReq) (*pb.GenerateAgentResp, error) {
+	slog.Info("GenerateAgent request received",
+		slog.String("goos", in.GOOS),
+		slog.String("goarch", in.GOARCH),
+		slog.String("team_id", in.CertOrganization),
+		slog.String("agent_id", in.CertCommonName),
+		slog.Bool("obfuscate", in.Obfuscate))
+
 	CACert := s.certService.GetCA()
 	if CACert == nil {
 		return nil, fmt.Errorf("CA certificate not found")
 	}
 
-	var cert *certificate.Certificate
-	var err error
-
-	// Check if custom cert fields provided
-	if in.CertCommonName != "" && in.CertOrganization != "" {
-		cert, err = s.certService.GenerateCertWithFields(
-			in.CertCommonName,
-			in.CertOrganization,
-			CACert,
-		)
-	} else {
-		// Fallback to shared cert behavior (backward compatible)
-		cert, err = s.certService.GenerateCert("", CACert)
-	}
-
-	if err != nil {
-		return nil, err
-	}
+	// No longer generating certificates - team info passed via protocol
+	// Use empty cert/key (agent template will use TeamID/AgentID instead)
+	slog.Info("Team info will be passed via agent protocol",
+		slog.String("team_id", in.CertOrganization),
+		slog.String("agent_id", in.CertCommonName))
 
 	result, err := s.assetsService.CompileAgent(
 		in.GOOS,
@@ -321,9 +315,11 @@ func (s *ligoloServer) GenerateAgent(ctx context.Context, in *pb.GenerateAgentRe
 		in.ProxyServer,
 		in.Servers,
 		string(CACert.Certificate),
-		string(cert.Certificate),
-		string(cert.Key),
+		"", // Empty AgentCert
+		"", // Empty AgentKey
 		in.IgnoreEnvProxy,
+		in.CertOrganization, // TeamID
+		in.CertCommonName,   // AgentID
 	)
 	if err != nil {
 		return nil, err
